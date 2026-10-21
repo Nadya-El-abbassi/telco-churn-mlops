@@ -34,35 +34,8 @@ This project implements a complete workflow around the Telco Customer Churn data
 
 ## Architecture
 
-```text
-Telco Customer Churn Dataset
-            |
-            v
-Data Exploration & Preprocessing
-            |
-            v
-Model Training & Evaluation
-  - Logistic Regression
-  - Random Forest
-  - XGBoost
-            |
-            v
-Hyperparameter Tuning
-  - RandomizedSearchCV
-  - 3-fold Cross-Validation
-            |
-            v
-MLflow Tracking & Model Registry
-            |
-            v
-FastAPI + Docker
-            |
-            v
-Prediction API
-            |
-            v
-Elasticsearch ---> Kibana
-```
+
+![FastAPI Swagger UI](docs/screenshots/architecture.jfif)
 
 ## Tech Stack
 
@@ -84,7 +57,7 @@ Elasticsearch ---> Kibana
 
 The web interface lets users enter customer information and get a churn prediction from the deployed XGBoost model.
 
-![Customer Churn Prediction UI](docs/screenshots/prediction-ui.png)
+<img src="docs/screenshots/prediction-ui.png" alt="Customer Churn UI" width="700">
 
 ### 2. FastAPI — Interactive API Documentation
 
