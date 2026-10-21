@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Évaluation du risque de résiliation · Telco</title>
+<style>
+  :root{
+    --bg:#070b14;
+    --bg-2:#0d1424;
+    --surface:rgba(255,255,255,.04);
+    --surface-2:rgba(255,255,255,.06);
+    --stroke:rgba(255,255,255,.09);
+    --stroke-2:rgba(255,255,255,.16);
+    --ink:#eaf0ff;
+    --muted:#8b9ab8;
+    --cyan:#22d3ee;
+    --violet:#8b5cf6;
+    --ok:#34d399;
+    --danger:#fb7185;
+    --radius:20px;
+    --shadow:0 30px 80px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(900px 600px at 15% -10%, rgba(34,211,238,.14), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, rgba(139,92,246,.16), transparent 55%),
+      radial-gradient(700px 500px at 50% 120%, rgba(244,114,182,.10), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+
+  /* NAV */
+  .nav{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:18px 0;flex-wrap:wrap;border-bottom:1px solid var(--stroke);
+  }
+  .logo-lockup{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:42px;height:42px;border-radius:13px;
+    background:linear-gradient(135deg,var(--cyan),var(--violet));
+    display:grid;place-items:center;color:#050914;font-weight:900;font-size:17px;
+    box-shadow:0 8px 24px rgba(139,92,246,.45);
+  }
+  .logo-text h1{font-size:16px;margin:0;font-weight:800;letter-spacing:-.2px}
+  .logo-text p{margin:1px 0 0;color:var(--muted);font-size:11.5px;letter-spacing:.3px;text-transform:uppercase}
+  .nav-pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{
+    font-size:11.5px;color:var(--muted);
+    border:1px solid var(--stroke);border-radius:999px;
+    padding:6px 12px;display:flex;align-items:center;gap:6px;
+    background:var(--surface);
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* HERO */
+  .hero{
+    display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;
+    padding:52px 0 40px;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:11px;letter-spacing:1.6px;text-transform:uppercase;font-weight:800;
+    color:var(--cyan);border:1px solid rgba(34,211,238,.3);
+    padding:6px 12px;border-radius:999px;background:rgba(34,211,238,.06);
+  }
+  .hero h2{
+    font-size:clamp(30px,4.4vw,52px);line-height:1.04;margin:16px 0 14px;
+    letter-spacing:-1.6px;font-weight:850;
+    background:linear-gradient(120deg,#fff 20%,#a5f3fc 55%,#c4b5fd 90%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero p{color:var(--muted);max-width:520px;margin:0 0 22px;font-size:15.5px}
+
+  /* Radar */
+  .radar-wrap{position:relative;aspect-ratio:1;max-width:420px;margin:0 auto;width:100%;
+    filter:drop-shadow(0 25px 60px rgba(34,211,238,.25));}
+  .radar-wrap svg{width:100%;height:100%;display:block}
+  .ring-anim{transform-origin:200px 200px;animation:spin 14s linear infinite}
+  .ring-anim-rev{transform-origin:200px 200px;animation:spin 22s linear infinite reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .blip{transform-origin:200px 200px;animation:blink 2.6s ease-in-out infinite}
+  .blip.b2{animation-delay:.6s}
+  .blip.b3{animation-delay:1.2s}
+  @keyframes blink{0%,100%{opacity:.3;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+
+  /* LAYOUT */
+  .grid{
+    display:grid;grid-template-columns:minmax(0,1.5fr) minmax(320px,.9fr);
+    gap:24px;align-items:start;padding-bottom:60px;
+  }
+  .card{
+    background:linear-gradient(180deg,var(--surface-2),var(--surface));
+    border:1px solid var(--stroke);border-radius:var(--radius);
+    box-shadow:var(--shadow);backdrop-filter:blur(14px);overflow:hidden;
+  }
+  .card-head{padding:22px 24px 14px;border-bottom:1px solid var(--stroke)}
+  .card-head h3{margin:0;font-size:15.5px;font-weight:800;letter-spacing:-.2px}
+  .card-head p{margin:4px 0 0;color:var(--muted);font-size:12.5px}
+
+  /* Steps */
+  .steps{display:flex;gap:0;padding:16px 24px;border-bottom:1px solid var(--stroke);overflow:auto}
+  .step{flex:1;display:flex;align-items:center;gap:10px;padding:10px 6px;
+    font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap;}
+  .step .num{
+    width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;font-weight:800;border:1px solid var(--stroke-2);color:var(--muted);
+    transition:all .25s;
+  }
+  .step.active .num{background:linear-gradient(135deg,var(--cyan),var(--violet));color:#050914;border-color:transparent;box-shadow:0 0 0 4px rgba(34,211,238,.15)}
+  .step.active{color:var(--ink)}
+  .step.done .num{background:var(--ok);color:#052e23;border-color:transparent}
+
+  /* Form */
+  form{padding:22px 24px 26px}
+  .group{margin-bottom:22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+  .group-title{
+    grid-column:1/-1;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--cyan);font-weight:800;margin:0 0 4px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .group-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--stroke),transparent)}
+  .field{display:flex;flex-direction:column}
+  label{font-size:12px;color:#b7c3da;font-weight:600;margin-bottom:6px}
+  input,select{
+    background:rgba(7,11,20,.6);border:1px solid var(--stroke);
+    color:var(--ink);border-radius:11px;padding:11px 12px;
+    font:inherit;font-size:13.5px;outline:none;width:100%;
+    transition:border-color .15s,box-shadow .15s,background .15s;
+  }
+  input:focus,select:focus{
+    border-color:rgba(34,211,238,.7);
+    box-shadow:0 0 0 3px rgba(34,211,238,.15);
+    background:rgba(7,11,20,.9);
+  }
+  select option{background:#0d1424;color:var(--ink)}
+  .hint{font-size:11px;color:var(--muted);margin-top:4px}
+
+  /* Actions */
+  .actions{display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap}
+  button{
+    border:0;border-radius:12px;padding:13px 20px;font:inherit;
+    font-weight:800;font-size:13.5px;cursor:pointer;transition:transform .12s,opacity .15s,box-shadow .2s;
+  }
+  .primary{
+    background:linear-gradient(135deg,var(--cyan),var(--violet));
+    color:#050914;box-shadow:0 12px 30px rgba(139,92,246,.35);
+  }
+  .primary:hover{transform:translateY(-1px)}
+  .primary:disabled{opacity:.6;cursor:wait;transform:none}
+  .secondary{background:transparent;color:var(--muted);border:1px solid var(--stroke)}
+  .secondary:hover{color:var(--ink);border-color:var(--stroke-2)}
+  .spinner{
+    display:inline-block;width:14px;height:14px;border-radius:50%;
+    border:2px solid rgba(5,9,20,.35);border-top-color:#050914;
+    animation:spin .7s linear infinite;margin-right:8px;vertical-align:-2px;
+  }
+  .error{
+    display:none;margin-top:14px;padding:12px 14px;border-radius:12px;
+    background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.35);
+    color:#fecdd3;font-size:12.5px;white-space:pre-wrap;word-break:break-word;
+  }
+
+  /* Résultat */
+  .result-body{padding:24px}
+  .empty{
+    border:1px dashed var(--stroke-2);border-radius:16px;
+    padding:34px 20px;text-align:center;color:var(--muted);
+    background:rgba(255,255,255,.015);
+  }
+  .empty .ico{font-size:30px;margin-bottom:10px;opacity:.7}
+  .empty strong{display:block;color:var(--ink);margin-bottom:5px;font-size:14px}
+  .empty p{margin:0;font-size:12.5px}
+
+  .result{display:none;animation:fadein .4s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .verdict{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;
+    border-radius:14px;margin-bottom:20px;border:1px solid transparent;
+  }
+  .verdict.risk{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.3)}
+  .verdict.safe{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)}
+  .verdict .badge-ico{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    font-size:20px;font-weight:900;flex:0 0 auto;
+  }
+  .verdict.risk .badge-ico{background:var(--danger);color:#3d0912}
+  .verdict.safe .badge-ico{background:var(--ok);color:#052e23}
+  .verdict h4{margin:0;font-size:14.5px;font-weight:800}
+  .verdict p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+
+  .gauge-wrap{display:flex;justify-content:center;margin:4px 0 18px}
+  .gauge{
+    width:180px;height:180px;border-radius:50%;
+    background:conic-gradient(var(--cyan) 0deg, rgba(255,255,255,.06) 0deg);
+    display:grid;place-items:center;
+    transition:background .7s cubic-bezier(.4,0,.2,1);
+    position:relative;
+  }
+  .gauge::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--bg-2)}
+  .gauge-inner{position:relative;z-index:1;text-align:center}
+  .gauge-inner .val{font-size:34px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+  .gauge-inner .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px;font-weight:700}
+
+  .meta{display:grid;grid-template-columns:1fr;gap:10px;margin-top:4px}
+  .meta-item{
+    padding:12px;border-radius:12px;
+    background:rgba(255,255,255,.03);border:1px solid var(--stroke);
+  }
+  .meta-item span{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:700}
+  .meta-item strong{font-size:13px;overflow-wrap:anywhere}
+
+  .recommend{
+    margin-top:16px;padding:14px;border-radius:12px;
+    background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);
+    font-size:12.5px;color:#bae6fd;
+  }
+  .recommend strong{color:var(--cyan);display:block;margin-bottom:4px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+
+  .footnote{text-align:center;color:var(--muted);font-size:11.5px;padding:0 0 50px;margin-top:-20px}
+
+  @media (max-width:920px){
+    .hero{grid-template-columns:1fr;gap:20px;padding:36px 0 26px}
+    .radar-wrap{max-width:300px}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    .group{grid-template-columns:1fr}
+    form{padding:18px}
+    .card-head{padding:18px}
+    .result-body{padding:18px}
+    .hero h2{letter-spacing:-1px}
+    .steps{padding:12px 16px}
+    .step{font-size:11px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="nav">
+    <div class="logo-lockup">
+      <div class="logo">TC</div>
+      <div class="logo-text">
+        <h1>Telco Churn</h1>
+        <p>Évaluation du risque client</p>
+      </div>
+    </div>
+    <div class="nav-pills">
+      <div class="pill"><span class="dot"></span>Service disponible</div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">● Analyse instantanée</div>
+      <h2>Anticipez le départ de vos clients.</h2>
+      <p>Renseignez le profil d'un client pour obtenir une estimation de son risque de résiliation. Une évaluation claire, en quelques secondes.</p>
+    </div>
+
+    <div class="radar-wrap" aria-hidden="true">
+      <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#22d3ee" stop-opacity=".9"/>
+            <stop offset="70%" stop-color="#8b5cf6" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#22d3ee" stop-opacity=".55"/>
+          </linearGradient>
+        </defs>
+        <circle cx="200" cy="200" r="170" fill="url(#core)" opacity=".35"/>
+        <g class="ring-anim">
+          <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(34,211,238,.35)" stroke-width="1.2" stroke-dasharray="3 9"/>
+        </g>
+        <circle cx="200" cy="200" r="110" fill="none" stroke="rgba(139,92,246,.3)" stroke-width="1.2"/>
+        <circle cx="200" cy="200" r="70" fill="none" stroke="rgba(244,114,182,.25)" stroke-width="1.2"/>
+        <g class="ring-anim-rev">
+          <path d="M200 200 L350 200 A150 150 0 0 1 305 305 Z" fill="url(#sweep)" opacity=".5"/>
+        </g>
+        <circle class="blip" cx="260" cy="150" r="4.5" fill="#22d3ee"/>
+        <circle class="blip b2" cx="150" cy="260" r="4" fill="#f472b6"/>
+        <circle class="blip b3" cx="290" cy="270" r="3.5" fill="#8b5cf6"/>
+        <circle cx="200" cy="200" r="6" fill="#eaf0ff"/>
+        <circle cx="200" cy="200" r="12" fill="none" stroke="#eaf0ff" stroke-opacity=".4"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-head">
+        <h3>Profil du client</h3>
+        <p>Renseignez les informations pour lancer l'analyse.</p>
+      </div>
+
+      <div class="steps" id="steps">
+        <div class="step active" data-step="1"><span class="num">1</span>Profil</div>
+        <div class="step" data-step="2"><span class="num">2</span>Services</div>
+        <div class="step" data-step="3"><span class="num">3</span>Contrat</div>
+      </div>
+
+      <form id="prediction-form" novalidate>
+        <div class="group" data-group="1">
+          <div class="group-title">Identité & foyer</div>
+          <div class="field"><label for="gender">Genre</label>
+            <select id="gender" name="gender" required><option>Female</option><option>Male</option></select></div>
+          <div class="field"><label for="SeniorCitizen">Client senior</label>
+            <select id="SeniorCitizen" name="SeniorCitizen" required><option value="0">Non</option><option value="1">Oui</option></select></div>
+          <div class="field"><label for="Partner">En couple</label>
+            <select id="Partner" name="Partner" required><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label for="Dependents">Personnes à charge</label>
+            <select id="Dependents" name="Dependents" required><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label for="tenure">Ancienneté (mois)</label>
+            <input id="tenure" name="tenure" type="number" min="0" max="72" value="12" required>
+            <span class="hint">0 à 72 mois</span></div>
+        </div>
+
+        <div class="group" data-group="2">
+          <div class="group-title">Services souscrits</div>
+          <div class="field"><label for="PhoneService">Service téléphonique</label>
+            <select id="PhoneService" name="PhoneService" required><option>Yes</option><option>No</option></select></div>
+          <div class="field"><label for="MultipleLines">Lignes multiples</label>
+            <select id="MultipleLines" name="MultipleLines" required><option>No</option><option>Yes</option><option>No phone service</option></select></div>
+          <div class="field"><label for="InternetService">Service Internet</label>
+            <select id="InternetService" name="InternetService" required><option>DSL</option><option>Fiber optic</option><option>No</option></select></div>
+          <div class="field"><label for="OnlineSecurity">Sécurité en ligne</label>
+            <select id="OnlineSecurity" name="OnlineSecurity" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div class="field"><label for="OnlineBackup">Sauvegarde en ligne</label>
+            <select id="OnlineBackup" name="OnlineBackup" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div class="field"><label for="DeviceProtection">Protection appareils</label>
+            <select id="DeviceProtection" name="DeviceProtection" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div class="field"><label for="TechSupport">Support technique</label>
+            <select id="TechSupport" name="TechSupport" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div class="field"><label for="StreamingTV">Streaming TV</label>
+            <select id="StreamingTV" name="StreamingTV" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div class="field"><label for="StreamingMovies">Streaming films</label>
+            <select id="StreamingMovies" name="StreamingMovies" required><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+        </div>
+
+        <div class="group" data-group="3">
+          <div class="group-title">Contrat & facturation</div>
+          <div class="field"><label for="Contract">Type de contrat</label>
+            <select id="Contract" name="Contract" required><option>Month-to-month</option><option>One year</option><option>Two year</option></select></div>
+          <div class="field"><label for="PaperlessBilling">Facture sans papier</label>
+            <select id="PaperlessBilling" name="PaperlessBilling" required><option>Yes</option><option>No</option></select></div>
+          <div class="field"><label for="PaymentMethod">Moyen de paiement</label>
+            <select id="PaymentMethod" name="PaymentMethod" required>
+              <option>Electronic check</option><option>Mailed check</option>
+              <option>Bank transfer (automatic)</option><option>Credit card (automatic)</option>
+            </select></div>
+          <div class="field"><label for="MonthlyCharges">Frais mensuels ($)</label>
+            <input id="MonthlyCharges" name="MonthlyCharges" type="number" min="0" step="0.01" value="55.20" required></div>
+          <div class="field"><label for="TotalCharges">Frais totaux ($)</label>
+            <input id="TotalCharges" name="TotalCharges" type="number" min="0" step="0.01" value="660.00" required></div>
+        </div>
+
+        <div class="actions">
+          <button id="submit-btn" class="primary" type="submit">Évaluer le risque →</button>
+          <button class="secondary" type="reset">Réinitialiser</button>
+        </div>
+        <div id="error" class="error" role="alert"></div>
+      </form>
+    </section>
+
+    <aside class="card">
+      <div class="card-head">
+        <h3>Résultat de l'évaluation</h3>
+        <p>Estimation du risque de résiliation</p>
+      </div>
+      <div class="result-body">
+        <div id="placeholder" class="empty">
+          <div class="ico">◌</div>
+          <strong>Aucune évaluation en cours</strong>
+          <p>Remplissez le formulaire puis cliquez sur « Évaluer le risque » pour voir le résultat.</p>
+        </div>
+
+        <div id="result" class="result" aria-live="polite">
+          <div class="verdict" id="verdict">
+            <div class="badge-ico" id="verdict-icon">!</div>
+            <div>
+              <h4 id="verdict-title">Résultat</h4>
+              <p id="verdict-desc">—</p>
+            </div>
+          </div>
+
+          <div class="gauge-wrap">
+            <div class="gauge" id="gauge">
+              <div class="gauge-inner">
+                <div class="val" id="prob-value">0%</div>
+                <div class="lbl">Risque de résiliation</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-item">
+              <span>Évaluation</span>
+              <strong id="eval-date">—</strong>
+            </div>
+          </div>
+
+          <div class="recommend" id="recommend">
+            <strong>Recommandation</strong>
+            <span id="recommend-text">—</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <p class="footnote">Cette estimation est indicative et ne remplace pas le jugement métier. © Telco — Service d'analyse client.</p>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById('prediction-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const errorBox = document.getElementById('error');
+  const resultBox = document.getElementById('result');
+  const placeholder = document.getElementById('placeholder');
+  const steps = [...document.querySelectorAll('.step')];
+
+  const groups = [...document.querySelectorAll('.group')];
+  function refreshSteps(){
+    groups.forEach((g, i) => {
+      const valid = [...g.querySelectorAll('input,select')].every(el => el.value !== '');
+      steps[i].classList.toggle('done', valid);
+    });
+  }
+  form.addEventListener('input', refreshSteps);
+  form.addEventListener('change', refreshSteps);
+  refreshSteps();
+
+  form.addEventListener('reset', () => {
+    errorBox.style.display = 'none';
+    resultBox.style.display = 'none';
+    placeholder.style.display = 'block';
+    setTimeout(refreshSteps, 0);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const raw = Object.fromEntries(new FormData(form).entries());
+    const payload = {
+      gender: raw.gender,
+      SeniorCitizen: Number.parseInt(raw.SeniorCitizen, 10),
+      Partner: raw.Partner,
+      Dependents: raw.Dependents,
+      tenure: Number.parseInt(raw.tenure, 10),
+      PhoneService: raw.PhoneService,
+      MultipleLines: raw.MultipleLines,
+      InternetService: raw.InternetService,
+      OnlineSecurity: raw.OnlineSecurity,
+      OnlineBackup: raw.OnlineBackup,
+      DeviceProtection: raw.DeviceProtection,
+      TechSupport: raw.TechSupport,
+      StreamingTV: raw.StreamingTV,
+      StreamingMovies: raw.StreamingMovies,
+      Contract: raw.Contract,
+      PaperlessBilling: raw.PaperlessBilling,
+      PaymentMethod: raw.PaymentMethod,
+      MonthlyCharges: Number.parseFloat(raw.MonthlyCharges),
+      TotalCharges: Number.parseFloat(raw.TotalCharges)
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Analyse en cours…';
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = {detail: text || 'Réponse vide'}; }
+      if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data));
+
+      renderResult(data);
+    } catch (err) {
+      errorBox.textContent = "L'évaluation a échoué : " + err.message;
+      errorBox.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Évaluer le risque →';
+    }
+  });
+
+  function renderResult(data){
+    // On utilise UNIQUEMENT ce qui est utile au client.
+    // Les champs model / model_version renvoyés par l'API sont ignorés.
+    const proba = Math.max(0, Math.min(1, Number(data.churn_probability)));
+    const pred = Number(data.churn_prediction);
+    const pct = Math.round(proba * 100);
+
+    placeholder.style.display = 'none';
+    resultBox.style.display = 'block';
+
+    const verdict = document.getElementById('verdict');
+    const icon = document.getElementById('verdict-icon');
+    const title = document.getElementById('verdict-title');
+    const desc = document.getElementById('verdict-desc');
+    if (pred === 1) {
+      verdict.className = 'verdict risk';
+      icon.textContent = '!';
+      title.textContent = 'Risque de résiliation élevé';
+      desc.textContent = 'Ce client pourrait mettre fin à son abonnement.';
+    } else {
+      verdict.className = 'verdict safe';
+      icon.textContent = '✓';
+      title.textContent = 'Client stable';
+      desc.textContent = 'Ce client devrait rester fidèle.';
+    }
+
+    const gauge = document.getElementById('gauge');
+    const color = pred === 1 ? 'var(--danger)' : 'var(--ok)';
+    const deg = Math.round(proba * 360);
+    gauge.style.background = `conic-gradient(${color} ${deg}deg, rgba(255,255,255,.06) ${deg}deg)`;
+
+    animateNumber(document.getElementById('prob-value'), pct);
+
+    // Date d'évaluation (côté client, pas de détail technique)
+    document.getElementById('eval-date').textContent =
+      new Date().toLocaleString('fr-FR', {dateStyle:'long', timeStyle:'short'});
+
+    const rec = document.getElementById('recommend-text');
+    if (pred === 1 && proba >= 0.75) rec.textContent = 'Action prioritaire : contacter ce client rapidement avec une offre de rétention personnalisée.';
+    else if (pred === 1) rec.textContent = 'À surveiller : proposez un engagement plus long ou un service complémentaire.';
+    else if (proba >= 0.3) rec.textContent = 'Risque modéré : maintenez un suivi régulier de la satisfaction.';
+    else rec.textContent = 'Aucune action particulière nécessaire.';
+  }
+
+  let animId;
+  function animateNumber(el, target){
+    cancelAnimationFrame(animId);
+    const start = performance.now();
+    const dur = 600;
+    function tick(now){
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased) + '%';
+      if (t < 1) animId = requestAnimationFrame(tick);
+    }
+    animId = requestAnimationFrame(tick);
+  }
+})();
+</script>
+</body>
+</html>

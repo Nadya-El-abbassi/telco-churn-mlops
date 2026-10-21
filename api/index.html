@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telco Churn Predictor</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-2: #273449;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #6366f1;
+    --accent-2: #8b5cf6;
+    --ok: #10b981;
+    --danger: #ef4444;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at 20% 0%, #1e1b4b 0%, var(--bg) 45%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  .container { max-width: 1080px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 32px; }
+  header h1 {
+    font-size: 2.2rem; margin: 0 0 8px;
+    background: linear-gradient(90deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; font-weight: 800; letter-spacing: -0.02em;
+  }
+  header p { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+  .badges { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .badge {
+    font-size: 0.75rem; padding: 4px 12px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--border); color: var(--muted);
+  }
+  .badge strong { color: var(--text); }
+
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .card h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .card .sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 20px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 0.78rem; color: var(--muted); font-weight: 500; letter-spacing: 0.02em; }
+  .field input, .field select {
+    background: var(--card-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; font-size: 0.9rem; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.25);
+  }
+  .field.full { grid-column: 1 / -1; }
+
+  button.predict {
+    grid-column: 1 / -1;
+    margin-top: 8px; padding: 14px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    color: white; border: none; border-radius: 12px;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: transform .1s, opacity .15s;
+  }
+  button.predict:hover { transform: translateY(-1px); }
+  button.predict:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  /* Panneau résultat */
+  .result-card { position: sticky; top: 24px; }
+  .result-empty {
+    color: var(--muted); text-align: center; padding: 40px 12px; font-size: 0.9rem;
+  }
+  .prob-ring { display: flex; justify-content: center; margin: 8px 0 16px; }
+  .ring {
+    width: 170px; height: 170px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: conic-gradient(var(--accent) 0deg, var(--card-2) 0deg);
+    transition: background 0.6s ease;
+  }
+  .ring-inner {
+    width: 134px; height: 134px; border-radius: 50%;
+    background: var(--card); display: grid; place-items: center;
+    flex-direction: column;
+  }
+  .ring-inner .val { font-size: 1.9rem; font-weight: 800; }
+  .ring-inner .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .verdict {
+    text-align: center; padding: 12px; border-radius: 12px;
+    font-weight: 700; font-size: 1rem; margin-bottom: 16px;
+  }
+  .verdict.risk { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .verdict.safe { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+  .meta { display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; }
+  .meta div { display: flex; justify-content: space-between; padding: 8px 10px; background: var(--card-2); border-radius: 8px; }
+  .meta span:first-child { color: var(--muted); }
+  .meta span:last-child { font-weight: 600; }
+
+  .error {
+    margin-top: 12px; padding: 10px 12px; border-radius: 8px;
+    background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; font-size: 0.82rem; white-space: pre-wrap; word-break: break-word;
+  }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Telco Customer Churn</h1>
+    <p>Estimez la probabilité qu'un client résilie son abonnement</p>
+    <div class="badges">
+      <div class="badge">Modèle <strong id="badge-model">…</strong></div>
+      <div class="badge">Version <strong id="badge-version">…</strong></div>
+      <div class="badge">API <strong>v2.0.0</strong></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Formulaire -->
+    <div class="card">
+      <h2>Informations client</h2>
+      <p class="sub">Renseignez les caractéristiques puis lancez la prédiction.</p>
+
+      <form id="form" class="grid">
+        <div class="field">
+          <label for="gender">Genre</label>
+          <select id="gender" name="gender">
+            <option>Female</option><option>Male</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="SeniorCitizen">Senior Citizen</label>
+          <select id="SeniorCitizen" name="SeniorCitizen">
+            <option value="0">Non (0)</option><option value="1">Oui (1)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="Partner">Partenaire</label>
+          <select id="Partner" name="Partner"><option>No</option><option>Yes</option></select>
+        </div>
+        <div class="field">
+          <label for="Dependents">Personnes à charge</label>
+          <select id="Dependents" name="Dependents"><option>No</option><option>Yes</option></select>
+        </div>
+        <div class="field">
+          <label for="tenure">Ancienneté (mois)</label>
+          <input id="tenure" name="tenure" type="number" min="0" max="72" value="12" required>
+        </div>
+        <div class="field">
+          <label for="PhoneService">Service téléphonique</label>
+          <select id="PhoneService" name="PhoneService"><option>Yes</option><option>No</option></select>
+        </div>
+        <div class="field">
+          <label for="MultipleLines">Lignes multiples</label>
+          <select id="MultipleLines" name="MultipleLines">
+            <option>No</option><option>Yes</option><option>No phone service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="InternetService">Service Internet</label>
+          <select id="InternetService" name="InternetService">
+            <option>DSL</option><option>Fiber optic</option><option>No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="OnlineSecurity">Sécurité en ligne</label>
+          <select id="OnlineSecurity" name="OnlineSecurity">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="OnlineBackup">Sauvegarde en ligne</label>
+          <select id="OnlineBackup" name="OnlineBackup">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="DeviceProtection">Protection appareil</label>
+          <select id="DeviceProtection" name="DeviceProtection">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="TechSupport">Support technique</label>
+          <select id="TechSupport" name="TechSupport">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="StreamingTV">Streaming TV</label>
+          <select id="StreamingTV" name="StreamingTV">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="StreamingMovies">Streaming Films</label>
+          <select id="StreamingMovies" name="StreamingMovies">
+            <option>No</option><option>Yes</option><option>No internet service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="Contract">Contrat</label>
+          <select id="Contract" name="Contract">
+            <option>Month-to-month</option><option>One year</option><option>Two year</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="PaperlessBilling">Facturation dématérialisée</label>
+          <select id="PaperlessBilling" name="PaperlessBilling"><option>Yes</option><option>No</option></select>
+        </div>
+        <div class="field">
+          <label for="PaymentMethod">Moyen de paiement</label>
+          <select id="PaymentMethod" name="PaymentMethod">
+            <option>Electronic check</option><option>Mailed check</option>
+            <option>Bank transfer (automatic)</option><option>Credit card (automatic)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="MonthlyCharges">Charges mensuelles ($)</label>
+          <input id="MonthlyCharges" name="MonthlyCharges" type="number" step="0.01" min="0" value="70.00" required>
+        </div>
+        <div class="field full">
+          <label for="TotalCharges">Charges totales ($)</label>
+          <input id="TotalCharges" name="TotalCharges" type="number" step="0.01" min="0" value="1500.00" required>
+        </div>
+
+        <button class="predict" id="btn" type="submit">Lancer la prédiction</button>
+      </form>
+      <div id="error" class="error" style="display:none"></div>
+    </div>
+
+    <!-- Résultat -->
+    <div class="card result-card">
+      <h2>Résultat</h2>
+      <p class="sub">Probabilité de churn estimée par le modèle champion.</p>
+
+      <div id="empty" class="result-empty">
+        Remplissez le formulaire et lancez une prédiction pour voir le résultat ici.
+      </div>
+
+      <div id="result" style="display:none">
+        <div class="prob-ring">
+          <div class="ring" id="ring">
+            <div class="ring-inner">
+              <div class="val" id="proba-val">0%</div>
+              <div class="lbl">Churn</div>
+            </div>
+          </div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div class="meta">
+          <div><span>Classe prédite</span><span id="m-class">—</span></div>
+          <div><span>Modèle</span><span id="m-model">—</span></div>
+          <div><span>Version</span><span id="m-version">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('form');
+  const btn = document.getElementById('btn');
+  const errorBox = document.getElementById('error');
+  const emptyBox = document.getElementById('empty');
+  const resultBox = document.getElementById('result');
+  const ring = document.getElementById('ring');
+  const probaVal = document.getElementById('proba-val');
+  const verdict = document.getElementById('verdict');
+
+  // Charge les infos modèle depuis /
+  fetch('/').then(r => r.json()).then(d => {
+    document.getElementById('badge-model').textContent = d.model || '—';
+    document.getElementById('badge-version').textContent = d.model_version || '—';
+  }).catch(() => {});
+
+  // Champs numériques à convertir
+  const INT_FIELDS = ['SeniorCitizen', 'tenure'];
+  const FLOAT_FIELDS = ['MonthlyCharges', 'TotalCharges'];
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Prédiction en cours…';
+
+    const data = Object.fromEntries(new FormData(form));
+    INT_FIELDS.forEach(f => data[f] = parseInt(data[f], 10));
+    FLOAT_FIELDS.forEach(f => data[f] = parseFloat(data[f]));
+
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail ? JSON.stringify(err.detail, null, 2) : `HTTP ${res.status}`);
+      }
+
+      const json = await res.json();
+      renderResult(json);
+    } catch (err) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = '❌ Erreur : ' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Lancer la prédiction';
+    }
+  });
+
+  function renderResult(json) {
+    const p = json.churn_probability;          // entre 0 et 1
+    const pct = Math.round(p * 100);
+    const deg = Math.round(p * 360);
+    const color = p >= 0.5 ? 'var(--danger)' : 'var(--ok)';
+
+    emptyBox.style.display = 'none';
+    resultBox.style.display = 'block';
+
+    probaVal.textContent = pct + '%';
+    ring.style.background = `conic-gradient(${color} ${deg}deg, var(--card-2) ${deg}deg)`;
+
+    if (json.churn_prediction === 1) {
+      verdict.className = 'verdict risk';
+      verdict.textContent = '⚠️ Client à risque de churn';
+    } else {
+      verdict.className = 'verdict safe';
+      verdict.textContent = '✅ Client stable';
+    }
+
+    document.getElementById('m-class').textContent =
+      json.churn_prediction === 1 ? 'Churn (1)' : 'Stable (0)';
+    document.getElementById('m-model').textContent = json.model;
+    document.getElementById('m-version').textContent = json.model_version;
+  }
+</script>
+</body>
+</html>

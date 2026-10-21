@@ -1,0 +1,23 @@
+artifact_path: file:C:/Users/DELL/Desktop/PFE_2027/telco-churn-mlops/notebooks/mlruns/1/models/m-a2e1bde84cfe43c894c56583a2d50480/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.13.3
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+mlflow_version: 3.16.1
+model_id: m-a2e1bde84cfe43c894c56583a2d50480
+model_size_bytes: 169327
+model_uuid: m-a2e1bde84cfe43c894c56583a2d50480
+prompts: null
+run_id: 5606b930638041e2bf72f764abf9920f
+utc_time_created: '2026-09-27 15:28:48.238129'

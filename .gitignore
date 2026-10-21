@@ -1,0 +1,28 @@
+# Environnements Python
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# MLflow : bases locales et artefacts
+**/mlflow.db
+**/mlflow.db-shm
+**/mlflow.db-wal
+mlruns/
+**/mlruns/
+mlartifacts/
+
+# Secrets et variables d'environnement
+.env
+.env.*
+!.env.example
+
+# Logs et fichiers temporaires
+*.log
+.DS_Store
+Thumbs.db
